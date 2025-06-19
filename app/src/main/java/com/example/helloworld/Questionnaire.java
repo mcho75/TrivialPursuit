@@ -87,6 +87,7 @@ public class Questionnaire extends AppCompatActivity {
             System.out.println(score);
             Intent i = new Intent(this, Resultat.class);
             i.putExtra("score", score);
+            i.putExtra("total", quiz.getNbCartes()*2);
             startActivity(i);
             return;
         }
@@ -99,7 +100,8 @@ public class Questionnaire extends AppCompatActivity {
         int[] positions = range(nb_mauvaises_reponses+1);
         this.melanger(positions);
         for (int i = 0; i < nb_mauvaises_reponses+1; i++) {
-            boutons.add(new Bouton(this, 800, 50, this::verifier_reponse));
+            boutons.add(new Bouton(this, this::verifier_reponse));
+            boutons.get(i).setHeight(100);
             if (i == nb_mauvaises_reponses) {
                 boutons.get(i).setText(quiz.getCarte(numero_question).getBonneReponse());
                 boutons.get(i).definir_correction(true);
@@ -111,7 +113,8 @@ public class Questionnaire extends AppCompatActivity {
             params = (GridLayout.LayoutParams) boutons.get(i).getLayoutParams();
             params.rowSpec = GridLayout.spec(i);
             params.columnSpec = GridLayout.spec(0);
-            params.setMargins(0, 20, 0, 20);
+            params.width = GridLayout.LayoutParams.MATCH_PARENT;
+            params.setMargins(100, 20, 100, 20);
             boutons.get(i).setLayoutParams(params);
         }
     }

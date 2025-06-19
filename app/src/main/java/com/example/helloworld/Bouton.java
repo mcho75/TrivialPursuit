@@ -8,10 +8,8 @@ public class Bouton extends AppCompatButton {
 
     private boolean est_correct;
 
-    public Bouton(android.content.Context context, int width, int height, View.OnClickListener fonction) {
+    public Bouton(android.content.Context context, View.OnClickListener fonction) {
         super(context);
-        setWidth(width);
-        setHeight(height);
         setTextColor(getResources().getColor(R.color.palette5));
         setAllCaps(false);
         setBackgroundResource(R.drawable.bouton_carre);
