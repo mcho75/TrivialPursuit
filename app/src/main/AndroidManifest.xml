@@ -23,10 +23,20 @@
         </activity>
         <activity
             android:name="Questionnaire"
+            android:configChanges="orientation|keyboardHidden|screenSize|locale"
             android:exported="false" />
         <activity
             android:name="Resultat"
             android:exported="false" />
     </application>
+
+    <queries>
+        <package android:name="com.example.myapplication" />
+        <intent>
+            <action android:name="android.intent.action.WEB_SEARCH" />
+        </intent>
+    </queries>
+    
+    <uses-permission android:name="android.permission.INTERNET" />
 
 </manifest>

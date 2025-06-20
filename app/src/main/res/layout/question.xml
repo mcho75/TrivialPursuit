@@ -13,9 +13,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Intitulé de la question"
-        android:layout_gravity="fill_horizontal|center"
         android:gravity="center"
-        app:layout_constraintBottom_toTopOf="@id/grille"/>
+        app:layout_constraintBottom_toTopOf="@id/grille"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent" />
 
     <GridLayout
         android:id="@+id/grille"
@@ -27,5 +28,19 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" >
     </GridLayout>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Chercher de l'aide"
+        android:background="@drawable/bouton_carre_2"
+        android:textColor="?colorOnPrimary"
+        android:onClick="chercher_en_ligne"
+        android:textAllCaps="false"
+        android:layout_margin="50dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/grille" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -3,8 +3,10 @@ package com.example.helloworld;
 import java.util.Random;
 import java.util.Vector;
 
+import android.app.SearchManager;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.GridLayout;
 import android.widget.TextView;
@@ -89,6 +91,7 @@ public class Questionnaire extends AppCompatActivity {
             i.putExtra("score", score);
             i.putExtra("total", quiz.getNbCartes()*2);
             startActivity(i);
+            finish();
             return;
         }
         premier_essai = true;
@@ -100,7 +103,7 @@ public class Questionnaire extends AppCompatActivity {
         int[] positions = range(nb_mauvaises_reponses+1);
         this.melanger(positions);
         for (int i = 0; i < nb_mauvaises_reponses+1; i++) {
-            boutons.add(new Bouton(this, this::verifier_reponse));
+            boutons.add(new Bouton(this, true, this::verifier_reponse));
             boutons.get(i).setHeight(100);
             if (i == nb_mauvaises_reponses) {
                 boutons.get(i).setText(quiz.getCarte(numero_question).getBonneReponse());
@@ -116,6 +119,17 @@ public class Questionnaire extends AppCompatActivity {
             params.width = GridLayout.LayoutParams.MATCH_PARENT;
             params.setMargins(100, 20, 100, 20);
             boutons.get(i).setLayoutParams(params);
+        }
+    }
+
+    public void chercher_en_ligne(View view) {
+        Intent recherche = new Intent(Intent.ACTION_WEB_SEARCH);
+        recherche.putExtra(SearchManager.QUERY, quiz.getCarte(numero_question).getQuestion());
+        if (recherche.resolveActivity(getPackageManager()) != null) {
+            startActivity(recherche);
+        }
+        else {
+            System.out.println("Pas d'application trouvée");
         }
     }
 }
