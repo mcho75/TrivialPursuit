@@ -1,11 +1,20 @@
 package com.example.helloworld;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Base64;
 import java.util.Random;
 import java.util.Vector;
 
 import android.app.SearchManager;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.widget.GridLayout;
@@ -20,6 +29,7 @@ public class Questionnaire extends AppCompatActivity {
     int numero_question;
     int score;
     boolean premier_essai;
+    boolean actif;
     Quiz quiz;
     GridLayout grille;
     TextView texte;
@@ -36,34 +46,55 @@ public class Questionnaire extends AppCompatActivity {
         numero_question = -1;
         grille = findViewById(R.id.grille);
         texte = findViewById(R.id.intitule);
-        quiz = new Quiz();
-        this.reponse_suivante();
+        actif = true;
+        try {
+            Intent i = getIntent();
+            String quiz_string = i.getStringExtra("quiz");
+            byte[] data = Base64.getDecoder().decode(quiz_string);
+            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(data));
+            quiz = (Quiz)ois.readObject();
+            this.reponse_suivante();
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void verifier_reponse(View b) {
-        Bouton b2 = (Bouton)b;
-        if (b2.est_correct()) {
-            Toast.makeText(this, "Réponse correcte", Toast.LENGTH_SHORT).show();
-            score++;
-            if (premier_essai) {
+        if (actif) {
+            Bouton b2 = (Bouton) b;
+            if (b2.est_correct()) {
+                Toast.makeText(this, "Réponse correcte", Toast.LENGTH_SHORT).show();
                 score++;
-            }
-            for (Bouton bou: boutons) {
-                grille.removeView(bou);
-            }
-            this.reponse_suivante();
-        } else {
-            if (premier_essai) {
-                Toast.makeText(this, "Réponse incorrecte", Toast.LENGTH_SHORT).show();
-                premier_essai = false;
-            }
-            else {
-                for (Bouton bou: boutons) {
-                    grille.removeView(bou);
+                if (premier_essai) {
+                    score++;
                 }
-                this.reponse_suivante();
+                this.afficher_reponses();
+            } else {
+                if (premier_essai) {
+                    Toast.makeText(this, "Réponse incorrecte", Toast.LENGTH_SHORT).show();
+                    premier_essai = false;
+                } else {
+                    this.afficher_reponses();
+                }
             }
         }
+    }
+
+    private void afficher_reponses() {
+        actif = false;
+        for (Bouton bou: boutons) {
+            System.out.println("Ok");
+            bou.changer_bg();
+        }
+        new android.os.Handler().postDelayed(() -> {
+            for (Bouton bou: boutons) {
+                bou.zoom_disparition();
+            }
+            new android.os.Handler().postDelayed(() -> {
+                grille.removeAllViews();
+                this.reponse_suivante();
+            }, 200);
+        }, 500);
     }
 
     public void melanger(int[] tab) {
@@ -104,7 +135,7 @@ public class Questionnaire extends AppCompatActivity {
         this.melanger(positions);
         for (int i = 0; i < nb_mauvaises_reponses+1; i++) {
             boutons.add(new Bouton(this, true, this::verifier_reponse));
-            boutons.get(i).setHeight(100);
+            boutons.get(i).setHeight(200);
             if (i == nb_mauvaises_reponses) {
                 boutons.get(i).setText(quiz.getCarte(numero_question).getBonneReponse());
                 boutons.get(i).definir_correction(true);
@@ -114,11 +145,13 @@ public class Questionnaire extends AppCompatActivity {
             }
             grille.addView(boutons.get(i));
             params = (GridLayout.LayoutParams) boutons.get(i).getLayoutParams();
-            params.rowSpec = GridLayout.spec(i);
+            params.rowSpec = GridLayout.spec(positions[i]);
             params.columnSpec = GridLayout.spec(0);
             params.width = GridLayout.LayoutParams.MATCH_PARENT;
             params.setMargins(100, 20, 100, 20);
             boutons.get(i).setLayoutParams(params);
+            boutons.get(i).zoom_apparition();
+            actif = true;
         }
     }
 

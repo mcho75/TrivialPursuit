@@ -2,12 +2,9 @@ package com.example.helloworld;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.GridLayout;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,23 +15,22 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
-import org.json.JSONArray;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.util.Base64;
 
 public class MainActivity extends AppCompatActivity {
 
     private ProgressBar progressBar;
     private Bouton bouton;
     private ConstraintLayout layout;
+    private int nb_questions = 10;
     private ConstraintLayout.LayoutParams params;
-    private RequestQueue requestQueue;
-    private TrivialResponseListener responseListener;
-    private TrivialErrorListener errorListener;
-    private StringRequest request;
-    private JSONArray cartes;
+    private Quiz q;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,45 +45,49 @@ public class MainActivity extends AppCompatActivity {
         getWindow().setNavigationBarColor(getResources().getColor(R.color.palette5));
         layout = findViewById(R.id.main);
         progressBar = findViewById(R.id.progressBar);
-        progressBar.setProgress(33);
+        progressBar.setProgress(0);
 
-        requestQueue = Volley.newRequestQueue(getApplicationContext());
-        responseListener = new TrivialResponseListener();
-        errorListener = new TrivialErrorListener();
-        request = new StringRequest(Request.Method.GET, "https://opentdb.com/api.php?amount=10&type=multiple", responseListener, errorListener);
+        RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
+        TrivialResponseListener responseListener = new TrivialResponseListener(this, nb_questions);
+        TrivialErrorListener errorListener = new TrivialErrorListener();
+        StringRequest request = new StringRequest(Request.Method.GET,
+                                    "https://opentdb.com/api.php?amount="+String.valueOf(nb_questions),
+                                    responseListener, errorListener);
+        progressBar.setProgress(50);
         requestQueue.add(request);
-        progressBar.setProgress(66);
+    }
 
-        cartes = responseListener.getCartes();
-
+    public void apres_importation(Quiz q2) {
+        progressBar.setProgress(100);
+        q = q2;
         bouton = new Bouton(this, false, this::lancer);
         bouton.setText("Nouvelle partie");
-        progressBar.setProgress(100);
-
-        new CountDownTimer(200, 200) {
-
-            public void onTick(long millisUntilFinished) {}
-
-            public void onFinish() {
-                layout.removeView(progressBar);
-                layout.addView(bouton);
-                params = (ConstraintLayout.LayoutParams)bouton.getLayoutParams();
-                params.topToTop = R.id.main;
-                params.bottomToBottom = R.id.main;
-                params.startToStart = R.id.main;
-                params.endToEnd = R.id.main;
-                params.verticalBias = 0.6f;
-                params.width = GridLayout.LayoutParams.MATCH_PARENT;
-                params.setMargins(100, 20, 100, 20);
-                bouton.setLayoutParams(params);
-                System.out.println("Bouton affiché");
-            }
-
-        }.start();
+        layout.removeView(progressBar);
+        layout.addView(bouton);
+        params = (ConstraintLayout.LayoutParams)bouton.getLayoutParams();
+        params.topToTop = R.id.main;
+        params.bottomToBottom = R.id.main;
+        params.startToStart = R.id.main;
+        params.endToEnd = R.id.main;
+        params.verticalBias = 0.6f;
+        params.width = GridLayout.LayoutParams.MATCH_PARENT;
+        params.setMargins(100, 20, 100, 20);
+        bouton.setLayoutParams(params);
+        bouton.zoom_apparition();
     }
 
     public void lancer(View view) {
         System.out.println("Hello world");
-        startActivity(new Intent(this, Questionnaire.class));
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream ois = new ObjectOutputStream(baos);
+            ois.writeObject(q);
+            String quiz_string = Base64.getEncoder().encodeToString(baos.toByteArray());
+            Intent i = new Intent(this, Questionnaire.class);
+            i.putExtra("quiz", quiz_string);
+            startActivity(i);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
